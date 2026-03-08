@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Konken</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --felt: #1a3a2a;
+    --felt-dark: #0f2218;
+    --felt-light: #234d38;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dark: #9a7a2e;
+    --cream: #f5ead8;
+    --red: #c0392b;
+    --text: #f0e6d0;
+    --muted: #8aad99;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--felt-dark);
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.06) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    font-family: 'Lato', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; padding: 24px 16px 40px; }
+  .screen.active { display: block; }
+
+  /* ── HEADER ── */
+  .app-header {
+    text-align: center;
+    padding: 32px 0 28px;
+    position: relative;
+  }
+  .app-header::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 12px auto 0;
+  }
+  .app-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(201,168,76,0.4), 0 2px 4px rgba(0,0,0,0.6);
+    letter-spacing: 0.05em;
+  }
+  .app-subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: linear-gradient(135deg, var(--felt-light), var(--felt));
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── GAME TYPE SELECTION ── */
+  .game-types {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .game-type-btn {
+    background: linear-gradient(145deg, var(--felt-light), var(--felt-dark));
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: left;
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+  }
+  .game-type-btn.selected {
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(201,168,76,0.25), inset 0 0 20px rgba(201,168,76,0.04);
+  }
+  .game-type-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .game-type-header-left { display: flex; align-items: center; gap: 12px; }
+  .game-type-btn .type-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gold-light);
+  }
+  .game-type-btn .type-rounds {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    background: rgba(0,0,0,0.25);
+    border-radius: 20px;
+    padding: 2px 9px;
+  }
+  .type-chevron {
+    color: var(--gold-dark);
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  .game-type-btn.selected .type-chevron { transform: rotate(180deg); color: var(--gold); }
+
+  /* accordion panel */
+  .type-rounds-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .type-rounds-panel.open { max-height: 380px; }
+  .type-rounds-inner {
+    border-top: 1px solid rgba(201,168,76,0.15);
+    padding: 10px 14px 14px;
+    max-height: 340px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,168,76,0.3) transparent;
+  }
+  .type-rounds-inner::-webkit-scrollbar { width: 4px; }
+  .type-rounds-inner::-webkit-scrollbar-track { background: transparent; }
+  .type-rounds-inner::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 4px; }
+  .round-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .round-entry:hover { background: rgba(201,168,76,0.06); }
+  .round-entry .re-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    color: var(--gold-dark);
+    min-width: 20px;
+    flex-shrink: 0;
+  }
+  .round-entry .re-text {
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .round-entry.re-special .re-text { color: var(--gold-light); font-style: italic; }
+
+  /* ── PLAYERS ── */
+  .player-inputs { display: flex; flex-direction: column; gap: 10px; max-width: 480px; margin: 0 auto; }
+  .player-row { display: flex; gap: 8px; align-items: center; }
+  .player-input {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 8px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .player-input:focus { border-color: var(--gold); }
+  .player-input::placeholder { color: rgba(138,173,153,0.5); }
+  .btn-icon {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 8px;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--gold);
+    font-size: 1.1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-icon:hover { background: rgba(201,168,76,0.2); border-color: var(--gold); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: var(--felt-dark);
+    border: none;
+    border-radius: 10px;
+    padding: 14px 28px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.3);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    box-shadow: 0 6px 24px rgba(201,168,76,0.45);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4; cursor: not-allowed; transform: none;
+    box-shadow: none;
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 8px;
+    padding: 9px 18px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+
+  /* ── GAME SCREEN ── */
+  .game-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 900px;
+    margin: 0 auto 20px;
+  }
+  .game-info {
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+  .game-info strong { color: var(--gold); }
+
+  /* ── ROUND DISPLAY ── */
+  .round-display {
+    max-width: 900px;
+    margin: 0 auto 20px;
+  }
+  .round-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .round-number {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.4rem;
+    color: var(--gold);
+  }
+  .round-rule {
+    background: rgba(0,0,0,0.25);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--cream);
+    letter-spacing: 0.03em;
+    line-height: 1.5;
+  }
+  .round-rule .rule-tag {
+    display: inline-block;
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-right: 8px;
+  }
+
+  /* ── SCORE ENTRY ── */
+  .score-grid {
+    display: grid;
+    gap: 8px;
+    max-width: 900px;
+    margin: 0 auto 16px;
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: border-color 0.2s;
+  }
+  .score-row:focus-within { border-color: rgba(201,168,76,0.4); }
+  .player-badge {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--felt-dark);
+    flex-shrink: 0;
+  }
+  .player-name-label {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .score-input {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 7px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    width: 80px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .score-input:focus { border-color: var(--gold); }
+  .score-input::-webkit-inner-spin-button,
+  .score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .total-score {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
+  }
+  .total-score span { color: var(--gold-light); font-weight: 600; }
+
+  /* ── SCOREBOARD TABLE ── */
+  .scoreboard-wrap {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    overflow-x: auto;
+  }
+  .scoreboard {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+  }
+  .scoreboard th {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 10px 12px;
+    text-align: center;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .scoreboard th:first-child { text-align: left; border-radius: 8px 0 0 0; }
+  .scoreboard th:last-child { border-radius: 0 8px 0 0; }
+  .scoreboard td {
+    padding: 9px 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+    background: rgba(0,0,0,0.15);
+    transition: background 0.15s;
+  }
+  .scoreboard td:first-child { text-align: left; font-weight: 600; color: var(--cream); }
+  .scoreboard tr:hover td { background: rgba(201,168,76,0.05); }
+  .scoreboard tr.current-round td { background: rgba(201,168,76,0.08); }
+  .scoreboard .total-row td {
+    background: rgba(201,168,76,0.1);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    color: var(--gold-light);
+    border-top: 1px solid rgba(201,168,76,0.3);
+    font-size: 0.9rem;
+  }
+  .scoreboard .winner-cell { color: var(--gold) !important; }
+
+  /* ── RULE SHEET MODAL ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; align-items: flex-start; justify-content: center; }
+  .modal {
+    background: linear-gradient(160deg, #1e4030, #112218);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    margin: auto;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+  .btn-close {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 1.3rem; line-height: 1;
+    transition: color 0.2s;
+  }
+  .btn-close:hover { color: var(--text); }
+  .rule-list { list-style: none; }
+  .rule-list li {
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    color: var(--text);
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .rule-list li:hover,
+  .rule-list li.highlight {
+    background: rgba(201,168,76,0.08);
+    border-left-color: var(--gold);
+    color: var(--cream);
+  }
+  .rule-list li.special {
+    color: var(--gold-light);
+    font-style: italic;
+  }
+  .rule-list li .r-num {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: var(--gold-dark);
+    margin-right: 8px;
+    min-width: 22px;
+    display: inline-block;
+  }
+
+  /* ── GAME OVER ── */
+  .winners-podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 32px 0 24px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .podium-step {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .podium-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+  .podium-score {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .podium-block {
+    width: 100%;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.1rem;
+  }
+  .podium-1 .podium-block { height: 90px; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--felt-dark); }
+  .podium-2 .podium-block { height: 65px; background: linear-gradient(135deg, #8a9a8a, #b0c0b0); color: var(--felt-dark); }
+  .podium-3 .podium-block { height: 48px; background: linear-gradient(135deg, #7a5a3a, #a07050); color: var(--felt-dark); }
+
+  /* ── HELPERS ── */
+  .gap-section { height: 20px; }
+  .text-center { text-align: center; }
+  .mt-4 { margin-top: 16px; }
+  .mt-2 { margin-top: 8px; }
+
+  /* nav */
+  .nav-pills {
+    display: flex;
+    gap: 8px;
+    max-width: 900px;
+    margin: 0 auto 20px;
+  }
+  .nav-pill {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-pill:hover, .nav-pill.active {
+    background: rgba(201,168,76,0.12);
+    border-color: rgba(201,168,76,0.5);
+    color: var(--gold);
+  }
+
+  @media (max-width: 400px) {
+    .type-label { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SETUP SCREEN ══════════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="app-header">
+    <div class="app-title">KONKEN</div>
+    <div class="app-subtitle">Kart Oyunu Asistanı</div>
+  </div>
+
+  <div style="max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Game Type -->
+    <div class="card">
+      <div class="section-title">Oyun Türü Seç</div>
+      <div class="game-types" id="game-types"></div>
+    </div>
+
+    <!-- Players -->
+    <div class="card">
+      <div class="section-title">Oyuncular</div>
+      <div class="player-inputs" id="player-inputs">
+        <div class="player-row">
+          <input class="player-input" placeholder="1. oyuncu adı" oninput="refreshStart()">
+          <button class="btn-icon" onclick="removePlayer(this)" style="visibility:hidden">✕</button>
+        </div>
+        <div class="player-row">
+          <input class="player-input" placeholder="2. oyuncu adı" oninput="refreshStart()">
+          <button class="btn-icon" onclick="removePlayer(this)" style="visibility:hidden">✕</button>
+        </div>
+      </div>
+      <button class="btn-secondary mt-4" onclick="addPlayer()" id="btn-add-player">+ Oyuncu Ekle</button>
+    </div>
+
+    <button class="btn-primary" id="btn-start" onclick="startGame()" disabled>Oyunu Başlat</button>
+
+    <!-- General Rules -->
+    <div class="card" style="margin-top:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleGenelKurallar(this)">
+        <div class="section-title" style="margin-bottom:0;">Genel Oyun Kuralları</div>
+        <span style="color:var(--gold-dark);font-size:0.75rem;transition:transform 0.3s;" id="genel-chevron">▼</span>
+      </div>
+      <div id="genel-kurallar-panel" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">
+          <div class="round-entry"><span class="re-num">1</span><span class="re-text">3-5 oyuncu ile oynanır</span></div>
+          <div class="round-entry"><span class="re-num">2</span><span class="re-text">13 farklı ceza türü vardır</span></div>
+          <div class="round-entry"><span class="re-num">3</span><span class="re-text">Her elde sadece 1 ceza oynanır</span></div>
+          <div class="round-entry"><span class="re-num">4</span><span class="re-text">Son el her zaman <strong style="color:var(--gold-light)">Elden</strong> cezasıdır</span></div>
+          <div class="round-entry re-special"><span class="re-num">5</span><span class="re-text">İşler kağıt atan oyuncu <strong>-50 ceza</strong> alır</span></div>
+          <div class="round-entry re-special"><span class="re-num">6</span><span class="re-text">Joker ile bitiren tüm oyunculara <strong>x2 ceza</strong> yedirir</span></div>
+          <div class="round-entry"><span class="re-num">7</span><span class="re-text">En düşük skor kazanır</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME SCREEN ══════════════ -->
+<div class="screen" id="screen-game">
+  <div class="app-header" style="padding:20px 0 16px">
+    <div class="app-title" style="font-size:1.6rem">KONKEN</div>
+  </div>
+
+  <div class="nav-pills">
+    <button class="nav-pill active" id="tab-score" onclick="showTab('score')">Puan Girişi</button>
+    <button class="nav-pill" id="tab-board" onclick="showTab('board')">Skor Tablosu</button>
+    <button class="nav-pill" id="tab-rules" onclick="openRules()">El Kuralları</button>
+  </div>
+
+  <div class="game-top-bar">
+    <div class="game-info">
+      <strong id="info-type">Kolay</strong> &nbsp;·&nbsp; El <strong id="info-round">1</strong> / <strong id="info-total">16</strong>
+    </div>
+    <button class="btn-secondary" onclick="backToSetup()">↩ Yeni Oyun</button>
+  </div>
+
+  <!-- Score Entry Tab -->
+  <div id="tab-score-content">
+    <div class="round-display">
+      <div class="round-header">
+        <div class="round-number" id="round-title">El 1</div>
+      </div>
+      <div class="round-rule" id="round-rule-display">—</div>
+    </div>
+
+    <div class="score-grid" id="score-grid"></div>
+
+    <div style="max-width:900px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-primary" id="btn-next" onclick="nextRound()" style="flex:1;min-width:180px">
+        Eli Onayla &amp; Sonraki →
+      </button>
+    </div>
+  </div>
+
+  <!-- Scoreboard Tab -->
+  <div id="tab-board-content" style="display:none;">
+    <div class="scoreboard-wrap">
+      <table class="scoreboard" id="scoreboard"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ END SCREEN ══════════════ -->
+<div class="screen" id="screen-end">
+  <div class="app-header">
+    <div class="app-title">Oyun Bitti</div>
+    <div class="app-subtitle">Final Sonuçları</div>
+  </div>
+  <div id="podium-container"></div>
+  <div class="scoreboard-wrap" style="max-width:900px;margin:0 auto 24px;">
+    <table class="scoreboard" id="final-scoreboard"></table>
+  </div>
+  <button class="btn-primary" onclick="backToSetup()">Tekrar Oyna</button>
+</div>
+
+<!-- ══════════════ RULES MODAL ══════════════ -->
+<div class="modal-backdrop" id="rules-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Round Rules</div>
+      <button class="btn-close" onclick="closeRules()">✕</button>
+    </div>
+    <ul class="rule-list" id="rule-list"></ul>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const RULES = {
+  kolay: {
+    label: "Kolay 1",
+    rounds: [
+      "Bir üçlü küt + bir üçlü seri",
+      "Bir dörtlü küt + bir üçlü seri",
+      "Bir dörtlü seri + bir üçlü küt",
+      "İki üçlü küt",
+      "İki üçlü seri",
+      "Bir dörtlü küt",
+      "Bir dörtlü seri",
+      "Bir dörtlü küt + bir dörtlü seri",
+      "İki dörtlü küt",
+      "İki dörtlü seri",
+      "Üç üçlü seri",
+      "Üç üçlü küt",
+      "Beşleme — Beşli seri",
+      "Cazip — İki üçlü seri + iki üçlü küt",
+      "Çift — Dört çift ile açılır",
+      "Arabitiş — Elden bitiş ★ ELDEN OYUN BİTİŞİ",
+    ]
+  },
+  kolay2: {
+    label: "Kolay 2",
+    rounds: [
+      "Bir üçlü küt + bir üçlü seri",
+      "İki üçlü küt",
+      "İki üçlü seri",
+      "Bir dörtlü küt",
+      "Bir dörtlü seri",
+      "Bir dörtlü küt + bir dörtlü seri",
+      "Üç üçlü seri",
+      "Üç üçlü küt",
+      "Beşleme — Beşli seri",
+      "Arabitiş — Elden bitiş ★ ELDEN OYUN BİTİŞİ",
+    ]
+  },
+  zor1: {
+    label: "Zor 1",
+    rounds: [
+      "Beş çift",
+      "Altı çift",
+      "Yedi çift",
+      "Üç dörtlü küt",
+      "Üç dörtlü seri",
+      "İki beşli seri",
+      "Bir yedili seri",
+      "Bir sekizli seri",
+      "Bir dörtlü küt + bir dörtlü seri",
+      "Bir altılı seri + bir dörtlü küt",
+      "Dört üçlü küt",
+      "Dört üçlü seri",
+      "Cazip — İki üçlü seri + iki üçlü küt",
+      "Arabitiş — Elden bitiş ★ ELDEN OYUN BİTİŞİ",
+    ]
+  },
+  zor2: {
+    label: "Zor 2",
+    rounds: [
+      "Altı çift",
+      "Dört çift + üçlü seri",
+      "İki dörtlü küt + bir dörtlü seri",
+      "İki dörtlü seri + bir dörtlü küt",
+      "Cazip — İki üçlü seri + iki üçlü küt",
+      "Bir altılı seri + bir dörtlü küt",
+      "İki beşli seri",
+      "İki dörtlü küt",
+      "İki dörtlü seri",
+      "Üç dörtlü küt",
+      "Üç dörtlü seri",
+      "Bir yedili seri",
+      "Bir sekizli seri + bir üçlü küt",
+      "Bir dörtlü küt + bir dörtlü seri",
+      "Üç üçlü seri + bir üçlü küt",
+      "Üç üçlü küt + bir üçlü seri",
+      "Arabitiş — Elden bitiş ★ ELDEN OYUN BİTİŞİ",
+    ]
+  },
+  zor3: {
+    label: "Zor 3 (Uzun)",
+    rounds: [
+      "İki dörtlü küt + bir dörtlü seri",
+      "İki dörtlü seri + bir dörtlü küt",
+      "Cazip — İki üçlü seri + iki üçlü küt",
+      "Bir altılı seri + bir dörtlü küt",
+      "Altı çift",
+      "Yedi çift",
+      "Dört çift + üçlü seri",
+      "Bir dörtlü küt + bir dörtlü seri",
+      "Bir dörtlü küt",
+      "Bir dörtlü seri",
+      "İki dörtlü küt",
+      "İki dörtlü seri",
+      "Üç dörtlü küt",
+      "Üç dörtlü seri",
+      "İki beşli seri",
+      "İki altılı seri",
+      "Bir altılı seri + bir dörtlü küt",
+      "Bir yedili seri",
+      "Bir yedili seri + bir üçlü küt",
+      "Bir sekizli seri + bir üçlü küt",
+      "İki üçlü seri + bir üçlü küt",
+      "İki üçlü küt + bir üçlü seri",
+      "Üç üçlü seri + bir üçlü küt",
+      "Üç üçlü küt + bir üçlü seri",
+      "İki üçlü seri",
+      "İki üçlü küt",
+      "Üç üçlü seri",
+      "Üç üçlü küt",
+      "Dört üçlü seri",
+      "Dört üçlü küt",
+      "Bir dörtlü küt + bir dörtlü seri",
+      "Arabitiş — Elden bitiş ★ ELDEN OYUN BİTİŞİ",
+    ]
+  }
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  type: null,
+  players: [],
+  round: 0,       // 0-indexed
+  scores: [],     // scores[playerIndex][roundIndex]
+  roundScores: [] // temp for current round entry
+};
+
+// ─── SETUP ───────────────────────────────────────────────────────────────────
+function buildGameTypes() {
+  const container = document.getElementById('game-types');
+  container.innerHTML = '';
+  Object.entries(RULES).forEach(([key, rule]) => {
+    const btn = document.createElement('div');
+    btn.className = 'game-type-btn';
+    btn.dataset.type = key;
+
+    // build round list HTML
+    const roundItems = rule.rounds.map((r, i) => {
+      const isSpecial = r.includes('Cazip') || r.includes('Arabitiş') || r.includes('Beşleme') || r.includes('Çift');
+      const cleanText = r.replace(' ★ ELDEN OYUN BİTİŞİ', ' ★');
+      return `<div class="round-entry ${isSpecial ? 're-special' : ''}">
+        <span class="re-num">${i+1}.</span>
+        <span class="re-text">${cleanText}</span>
+      </div>`;
+    }).join('');
+
+    btn.innerHTML = `
+      <div class="game-type-header" onclick="selectType(this.closest('.game-type-btn'))">
+        <div class="game-type-header-left">
+          <span class="type-label">${rule.label}</span>
+          <span class="type-rounds">${rule.rounds.length} El</span>
+        </div>
+        <span class="type-chevron">▼</span>
+      </div>
+      <div class="type-rounds-panel">
+        <div class="type-rounds-inner">${roundItems}</div>
+      </div>
+    `;
+    container.appendChild(btn);
+  });
+}
+
+function selectType(btn) {
+  const allBtns = document.querySelectorAll('.game-type-btn');
+  allBtns.forEach(b => {
+    b.classList.remove('selected');
+    b.querySelector('.type-rounds-panel').classList.remove('open');
+  });
+  btn.classList.add('selected');
+  btn.querySelector('.type-rounds-panel').classList.add('open');
+  state.type = btn.dataset.type;
+  refreshStart();
+}
+
+function addPlayer() {
+  const inputs = document.getElementById('player-inputs');
+  if (inputs.children.length >= 8) return;
+  const row = document.createElement('div');
+  row.className = 'player-row';
+  row.innerHTML = `
+    <input class="player-input" placeholder="${inputs.children.length + 1}. oyuncu adı" oninput="refreshStart()">
+    <button class="btn-icon" onclick="removePlayer(this)">✕</button>
+  `;
+  inputs.appendChild(row);
+  updateRemoveButtons();
+  refreshStart();
+  if (inputs.children.length >= 8)
+    document.getElementById('btn-add-player').style.display = 'none';
+}
+
+function removePlayer(btn) {
+  btn.closest('.player-row').remove();
+  updateRemoveButtons();
+  refreshStart();
+  document.getElementById('btn-add-player').style.display = '';
+}
+
+function updateRemoveButtons() {
+  const rows = document.querySelectorAll('.player-row');
+  rows.forEach((row, i) => {
+    const btn = row.querySelector('.btn-icon');
+    btn.style.visibility = rows.length > 2 ? 'visible' : 'hidden';
+  });
+}
+
+function refreshStart() {
+  const names = [...document.querySelectorAll('.player-input')].map(i => i.value.trim()).filter(Boolean);
+  const ok = state.type && names.length >= 2;
+  document.getElementById('btn-start').disabled = !ok;
+}
+
+function startGame() {
+  const names = [...document.querySelectorAll('.player-input')].map(i => i.value.trim() || `Player ${idx+1}`);
+  state.players = names;
+  state.round = 0;
+  state.scores = names.map(() => []);
+  initRound();
+  showScreen('game');
+}
+
+// ─── GAME ─────────────────────────────────────────────────────────────────────
+function initRound() {
+  const rule = RULES[state.type];
+  const roundIdx = state.round;
+  const totalRounds = rule.rounds.length;
+
+  document.getElementById('info-type').textContent = rule.label;
+  document.getElementById('info-round').textContent = roundIdx + 1;
+  document.getElementById('info-total').textContent = totalRounds;
+  document.getElementById('round-title').textContent = `El ${roundIdx + 1}`;
+
+  const ruleText = rule.rounds[roundIdx];
+  const isSpecial = ruleText.includes('★') || ruleText.toLowerCase().includes('cazip') || ruleText.toLowerCase().includes('beşleme') || ruleText.toLowerCase().includes('çift');
+  document.getElementById('round-rule-display').innerHTML =
+    (isSpecial ? `<span class="rule-tag">Özel</span>` : `<span class="rule-tag">El ${roundIdx+1}</span>`) +
+    ruleText.replace(' ★ ELDEN OYUN BİTİŞİ', ' <em style="color:var(--gold);font-size:0.78rem">★ Elden bitiş</em>');
+
+  // Build score inputs
+  const grid = document.getElementById('score-grid');
+  grid.innerHTML = '';
+  state.players.forEach((name, i) => {
+    const total = state.scores[i].reduce((a,b)=>a+b,0);
+    const div = document.createElement('div');
+    div.className = 'score-row';
+    div.innerHTML = `
+      <div class="player-badge">${name.charAt(0).toUpperCase()}</div>
+      <div class="player-name-label">${name}</div>
+      <input class="score-input" type="number" inputmode="numeric" placeholder="0" id="score-p${i}" onkeydown="scoreKeydown(event,${i})">
+      <div class="total-score">Toplam: <span id="total-p${i}">${total}</span></div>
+    `;
+    grid.appendChild(div);
+  });
+
+  document.getElementById('btn-next').textContent =
+    roundIdx + 1 < totalRounds ? `Eli Onayla & Sonraki →` : `Onayla & Oyunu Bitir →`;
+
+  updateScoreboard();
+}
+
+function scoreKeydown(e, idx) {
+  if (e.key === 'Enter') {
+    const next = document.getElementById(`score-p${idx+1}`);
+    if (next) next.focus(); else nextRound();
+  }
+}
+
+function nextRound() {
+  // collect scores (blank = 0)
+  state.players.forEach((_, i) => {
+    const val = parseInt(document.getElementById(`score-p${i}`).value) || 0;
+    state.scores[i].push(val);
+  });
+
+  const totalRounds = RULES[state.type].rounds.length;
+  if (state.round + 1 >= totalRounds) {
+    showEndScreen();
+  } else {
+    state.round++;
+    initRound();
+    showTab('score');
+  }
+}
+
+// ─── SCOREBOARD ───────────────────────────────────────────────────────────────
+function updateScoreboard() {
+  const table = document.getElementById('scoreboard');
+  const rules = RULES[state.type].rounds;
+  const n = state.players.length;
+
+  let html = '<thead><tr><th>El</th>';
+  state.players.forEach(p => html += `<th>${p}</th>`);
+  html += '</tr></thead><tbody>';
+
+  for (let r = 0; r < rules.length; r++) {
+    const isCurrent = r === state.round;
+    html += `<tr class="${isCurrent ? 'current-round' : ''}">`;
+    html += `<td style="font-family:'Cinzel',serif;font-size:0.72rem;color:var(--muted);">${r+1}</td>`;
+    for (let p = 0; p < n; p++) {
+      const val = state.scores[p][r];
+      html += `<td>${val !== undefined ? val : (isCurrent ? '·' : '—')}</td>`;
+    }
+    html += '</tr>';
+  }
+
+  // totals
+  html += '<tr class="total-row"><td>TOPLAM</td>';
+  for (let p = 0; p < n; p++) {
+    const t = state.scores[p].reduce((a,b)=>a+b,0);
+    html += `<td>${t}</td>`;
+  }
+  html += '</tr></tbody>';
+  table.innerHTML = html;
+
+  // update live totals on score entry
+  state.players.forEach((_, i) => {
+    const el = document.getElementById(`total-p${i}`);
+    if (el) el.textContent = state.scores[i].reduce((a,b)=>a+b,0);
+  });
+}
+
+// ─── END ──────────────────────────────────────────────────────────────────────
+function showEndScreen() {
+  // build final scoreboard
+  const table = document.getElementById('final-scoreboard');
+  const rules = RULES[state.type].rounds;
+  const n = state.players.length;
+
+  let html = '<thead><tr><th>El</th>';
+  state.players.forEach(p => html += `<th>${p}</th>`);
+  html += '</tr></thead><tbody>';
+  for (let r = 0; r < rules.length; r++) {
+    html += `<tr><td style="font-family:'Cinzel',serif;font-size:0.72rem;color:var(--muted);">${r+1}</td>`;
+    for (let p = 0; p < n; p++) {
+      html += `<td>${state.scores[p][r] ?? '—'}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '<tr class="total-row"><td>TOPLAM</td>';
+  const totals = state.players.map((_, i) => state.scores[i].reduce((a,b)=>a+b,0));
+  const sorted = totals.map((t,i) => ({i,t})).sort((a,b)=>a.t-b.t);
+  for (let p = 0; p < n; p++) {
+    const isWinner = p === sorted[0].i;
+    html += `<td class="${isWinner?'winner-cell':''}">${totals[p]}${isWinner?' 🏆':''}</td>`;
+  }
+  html += '</tr></tbody>';
+  table.innerHTML = html;
+
+  // podium (top 3)
+  const top3 = sorted.slice(0,3);
+  const podiumOrder = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : (top3.length === 2 ? [top3[1], top3[0]] : [top3[0]]);
+  const podiumClass = ['podium-2','podium-1','podium-3'];
+  const medals = ['🥈','🥇','🥉'];
+
+  let podiumHTML = `<div class="winners-podium">`;
+  podiumOrder.forEach((entry, idx) => {
+    const cls = podiumClass[idx] || 'podium-2';
+    const medal = medals[idx];
+    podiumHTML += `
+      <div class="podium-step ${cls}">
+        <div class="podium-name">${state.players[entry.i]}</div>
+        <div class="podium-score">${entry.t} puan</div>
+        <div class="podium-block">${medal}</div>
+      </div>`;
+  });
+  podiumHTML += '</div>';
+  document.getElementById('podium-container').innerHTML = podiumHTML;
+
+  showScreen('end');
+}
+
+// ─── RULES MODAL ──────────────────────────────────────────────────────────────
+function openRules() {
+  const rules = RULES[state.type] || RULES['kolay'];
+  document.getElementById('modal-title').textContent = `${rules.label} — Tüm Eller`;
+  const list = document.getElementById('rule-list');
+  list.innerHTML = '';
+  rules.rounds.forEach((r, i) => {
+    const li = document.createElement('li');
+    if (i === state.round) li.classList.add('highlight');
+    if (r.includes('Cazip') || r.includes('Arabitiş') || r.includes('Beşleme') || r.includes('Çift')) li.classList.add('special');
+    li.innerHTML = `<span class="r-num">${i+1}.</span>${r.replace(' ★ ELDEN OYUN BİTİŞİ','')}`;
+    list.appendChild(li);
+  });
+  document.getElementById('rules-modal').classList.add('open');
+}
+
+function closeRules() {
+  document.getElementById('rules-modal').classList.remove('open');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildGameTypes();
+
+function toggleGenelKurallar(header) {
+  const panel = document.getElementById('genel-kurallar-panel');
+  const chevron = document.getElementById('genel-chevron');
+  const isOpen = panel.style.maxHeight !== '0px' && panel.style.maxHeight !== '';
+  panel.style.maxHeight = isOpen ? '0px' : '600px';
+  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  chevron.style.color = isOpen ? 'var(--gold-dark)' : 'var(--gold)';
+}
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+function showTab(tab) {
+  document.getElementById('tab-score-content').style.display = tab==='score' ? 'block' : 'none';
+  document.getElementById('tab-board-content').style.display = tab==='board' ? 'block' : 'none';
+  document.getElementById('tab-score').classList.toggle('active', tab==='score');
+  document.getElementById('tab-board').classList.toggle('active', tab==='board');
+  if (tab === 'board') updateScoreboard();
+}
+
+function backToSetup() {
+  state = { type: null, players: [], round: 0, scores: [], roundScores: [] };
+  buildGameTypes();
+  showScreen('setup');
+}
+</script>
+</body>
+</html>
